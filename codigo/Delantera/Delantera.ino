@@ -8,7 +8,9 @@ Sobre los botones:
 5 = Boton superior der
 
 */
-
+#include <WiFi.h>
+#include <WebServer.h>
+#include <EEPROM.h>
 #include "HardwareSerial.h"
 #include <Wire.h>
 #include <string.h>
@@ -43,11 +45,19 @@ unsigned long lapTime = 0;
 
 bool running = false;
 
+const char* ssid = "SSID";
+const char* password = "PASSWORD";
+WebServer server(80);
+bool wifiEnabled = false;
+
 void setup()
 {
     Serial.begin(115200);
     softSerial.begin(9600);
     Wire.begin(21, 22);
+
+    EEPROM.begin(512);
+    enableWiFi();
 
     pinMode(CONTROL_PIN, OUTPUT);
     digitalWrite(CONTROL_PIN, LOW);
@@ -73,7 +83,7 @@ void loop()
     HandleBotones();
     ReadMax485();
     setScreen();
-
+    server.handleClient();
 }
 void setScreen(){
     switch (menu)
@@ -249,3 +259,30 @@ void ReadMax485()
     }
 }
 
+void enableWiFi() {
+    if (!wifiEnabled) {
+        WiFi.begin(ssid, password);
+
+        while (WiFi.status() != WL_CONNECTED) {
+            delay(1000);
+            Serial.println("Connecting to WiFi...");
+        }
+
+        Serial.println("Connected to WiFi");
+        Serial.print("IP Address: ");
+        Serial.println(WiFi.localIP());
+        wifiEnabled = true;
+
+        server.on("/send", HTTP_POST, handleWiFiMessage);
+        server.begin();
+    }
+}
+
+void handleWiFiMessage() {
+    String message = server.arg("message"); 
+    float value = message.toFloat(); 
+
+    EEPROM.put(0, value);
+    EEPROM.commit();
+    server.send(200, "text/plain", "Message received");
+}
