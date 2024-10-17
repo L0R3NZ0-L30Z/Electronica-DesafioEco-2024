@@ -69,8 +69,7 @@ void setup()
 void loop()
 {
     unsigned long currentTime = millis() - startTime; // a ver
-    Readbotones();
-    ReadTrasera();
+    ReadBotones();
     HandleBotones();
     ReadMax485();
     setScreen();
@@ -81,22 +80,22 @@ void setScreen(){
     {
     case 0:
         sendCommand("page Principal");
-        sendCommand("t3", RapidezIdeal);
-        sendCommand("n0", Rapidez);
-        sendCommand("t5", Tension);
-        sendCommand("t6", Consumo);
-        setSliderValue("j1", sliderValue);
+        sendCommand(String("t3 " + RapidezIdeal).c_str());
+        sendCommand(String("n0 " + Rapidez).c_str());
+        sendCommand(String("t5 " + Tension).c_str());
+        sendCommand(String("t6 " + Consumo).c_str());
+        setSliderValue(String("j1 " + sliderValue).c_str(),sliderValue);
         break;
 
     case 1:
         sendCommand("page Info");
-        sendCommand("n0", Rapidez);
-        sendCommand("t5", Tension);
-        sendCommand("t6", Consumo);
-        sendCommand("t9", Vueltas);
-        sendCommand("t8", lapTime);
-        sendCommand("t12", PorcentajeBateria);
-        setSliderValue("j1", sliderValue);
+        sendCommand(String("n0 " + Rapidez).c_str());
+        sendCommand(String("t5 " + Tension).c_str());
+        sendCommand(String("t6 " + Consumo).c_str());
+        sendCommand(String("t9 " + Vueltas).c_str());
+        sendCommand(String("t8 " + lapTime).c_str());
+        sendCommand(String("t12 " + PorcentajeBateria).c_str());
+        setSliderValue(String("j1 " + sliderValue).c_str(),sliderValue);
 
         break;
 
@@ -144,26 +143,26 @@ void HandleBotones()
     // FALTA DEFINIR BOTONES
     // FALTA DEFINIR BOTONES
     // FALTA DEFINIR BOTONES
-    if (gpioState & (1 << x)) // Cambiar de Menu //Remplazar 'x' por el numerp de boton
+    if (gpioState & (1 << 0)) // Cambiar de Menu //Remplazar 'x' por el numerp de boton
     {
         if (menu == 0)
             menu = 1;
         if (menu == 1)
             menu = 0;
     }
-    else if (gpioState & (1 << x)) // Iniciar Timer //Remplazar 'x' por el numerp de boton
+    else if (gpioState & (1 << 0)) // Iniciar Timer //Remplazar 'x' por el numerp de boton
     {
         startStopwatch();
     }
-    else if (gpioState & (1 << x)) // Iniciar Timer //Remplazar 'x' por el numerp de boton
+    else if (gpioState & (1 << 0)) // Iniciar Timer //Remplazar 'x' por el numerp de boton
     {
         recordLap();
     }
-    else if (gpioState & (1 << x) && gpioState & (1 << y)) // Iniciar Timer //Remplazar 'x' por el numerp de boton
+    else if (gpioState & (1 << 0) && gpioState & (1 << 0)) // Iniciar Timer //Remplazar 'x' por el numerp de boton
     {
         resetStopwatch();
     }
-    else if (gpioState & (1 << x) && gpioState & (1 << y)) // Iniciar Timer //Remplazar 'x' por el numerp de boton
+    else if (gpioState & (1 << 0) && gpioState & (1 << 0)) // Iniciar Timer //Remplazar 'x' por el numerp de boton
     {
         stopStopwatch();
     }
@@ -207,7 +206,7 @@ void recordLap()
         unsigned long currentLapTime = millis() - startTime - lapTime;
         lapTime = millis() - startTime;
         Serial.print("Lap Time: ");
-        printTime(currentLapTime);
+        Serial.println(currentLapTime);
     }
 }
 
@@ -216,7 +215,7 @@ void SendTime(unsigned long time)
     unsigned long minutes = (time / 60000) % 60;
     unsigned long seconds = (time / 1000) % 60;
     unsigned long milliseconds = time % 1000;
-    String timeString = String(minutes) + ":" + String(seconds).padStart(2, '0') + ":" + String(milliseconds).padStart(3, '0');
+    String timeString = String(minutes) + ":" + String(seconds) + ":" + String(milliseconds,1);
 }
 
 void ReadMax485()
@@ -242,9 +241,9 @@ void ReadMax485()
             Serial.print("Consumo: ");
             Serial.println(Consumo);
         }
-        if (Speed != NULL) {
+        if (Rapidez != NULL) {
             Serial.print("Speed: ");
-            Serial.println(Speed);
+            Serial.println(Rapidez);
         }
         // ^^^^^^^^^^^^^^^^^
     }
