@@ -256,3 +256,79 @@ void ReadMax485()
 
     }
 }
+
+/*
+#include <WiFi.h>
+#include <WebServer.h>
+#include <ArduinoJson.h>
+
+const char* ssid = "SSID";
+const char* password = "PASSWORD";
+
+WebServer server(80);
+
+void sendCORSHeaders() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
+  server.sendHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+  server.sendHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+void handlePost() {
+  String message = "";
+
+  if (server.hasArg("plain")) {
+    String json = server.arg("plain");
+    StaticJsonDocument<200> doc;
+    DeserializationError error = deserializeJson(doc, json);
+    
+    if (!error) {
+      message = String(doc["message"].as<const char*>()); // Explicit conversion to String
+    } else {
+      server.send(400, "text/plain", "Invalid JSON");
+      return;
+    }
+  } else {
+    server.send(400, "text/plain", "No data received");
+    return;
+  }
+
+  Serial.println("Received message: " + message);
+  sendCORSHeaders();
+  server.send(200, "text/plain", "Message received: " + message);
+}
+
+void handleOptions() {
+  sendCORSHeaders(); 
+  server.send(204);  
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  
+  Serial.println("\nConnected to Wi-Fi");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
+
+  server.on("/", HTTP_GET, []() {
+    sendCORSHeaders();
+    server.send(200, "text/plain", "ESP32 server is running");
+  });
+  
+  server.on("/send", HTTP_POST, handlePost);
+  server.on("/send", HTTP_OPTIONS, handleOptions);
+
+  server.begin();
+  Serial.println("HTTP server started");
+}
+
+void loop() {
+  server.handleClient();
+}
+*/
