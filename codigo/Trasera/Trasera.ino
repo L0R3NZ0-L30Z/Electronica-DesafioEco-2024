@@ -1,5 +1,10 @@
-#include <SoftwareSerial.h>
+#include <Arduino.h>
 #include <EEPROM.h>
+
+#define DE_RE_PIN 8
+#define TX_PIN 10
+#define RX_PIN 9
+
 
 #define CURRENT_SENSOR_PIN 2
 #define WCS1800_SENSITIVITY 0.066
@@ -11,10 +16,6 @@
 #define R1 16000000 // 16 M
 #define R2 1000000  // 1 M
 
-#define TX_PIN 8
-#define RX_PIN -1
-#define CONTROL_PIN 10
-
 #define CURRENT_SENSOR_PIN x // Falta definir
 #define EEPROM_ADDRESS 0
 #define SAMPLING_INTERVAL 100
@@ -24,24 +25,26 @@ float totalAh = 0.0;
 
 unsigned long previousMillis = 0;
 
-SoftwareSerial softSerial(TX_PIN, RX_PIN);
 
 void setup()
 {
     Serial.begin(115200);
-    softSerial.begin(9600);
+    Serial1.begin(9600, SERIAL_8N1, RX_PIN, TX_PIN);
+    pinMode(DE_RE_PIN, OUTPUT);
+
     EEPROM.begin(512);
     EEPROM.get(EEPROM_ADDRESS, totalAh);
     Serial.println(totalAh);
-    pinMode(CONTROL_PIN, OUTPUT);
-    digitalWrite(CONTROL_PIN, HIGH);
 }
 
 void loop()
 {
-    String message = string(totalAh) + " A/h&" + String(readVoltage) +" v&" + String(ReadSpeed) + " Km/h#";
-    softSerial.print(message);
+    const char* message = string(totalAh) + " A/h&" + String(readVoltage) +" v&" + String(ReadSpeed) + " Km/h#";
+    digitalWrite(DE_RE_PIN, HIGH);
+    Serial1.println(message);
     Serial.println(message);
+    delay(100);
+    digitalWrite(DE_RE_PIN, LOW);
     delay(100);
 }
 

@@ -9,6 +9,7 @@ Sobre los botones:
 
 */
 
+#include <Arduino.h>
 #include "HardwareSerial.h"
 #include <Wire.h>
 #include <string.h>
@@ -18,13 +19,11 @@ Sobre los botones:
 #define IODIR_REGISTER 0x00
 #define GPIO_REGISTER 0x09
 
+#define DE_RE_PIN 0
 #define RX_PIN 9
-#define TX_PIN -1
-#define CONTROL_PIN 10
+#define TX_PIN 10
 
 HardwareSerial nextion(2);
-
-SoftwareSerial softSerial(TX_PIN, RX_PIN);
 
 int menu = 0; // 0=principal, 1=info, 2=config
 String Rapidez;
@@ -46,7 +45,10 @@ bool running = false;
 void setup()
 {
     Serial.begin(115200);
-    softSerial.begin(9600);
+    Serial1.begin(2400, SERIAL_8N1, RX_PIN, TX_PIN);
+    pinMode(DE_RE_PIN, OUTPUT);
+    digitalWrite(DE_RE_PIN, LOW);
+
     Wire.begin(21, 22);
 
     pinMode(CONTROL_PIN, OUTPUT);
@@ -73,9 +75,9 @@ void loop()
     HandleBotones();
     ReadMax485();
     setScreen();
-
 }
-void setScreen(){
+void setScreen()
+{
     switch (menu)
     {
     case 0:
@@ -84,7 +86,7 @@ void setScreen(){
         sendCommand(String("n0 " + Rapidez).c_str());
         sendCommand(String("t5 " + Tension).c_str());
         sendCommand(String("t6 " + Consumo).c_str());
-        setSliderValue(String("j1 " + sliderValue).c_str(),sliderValue);
+        setSliderValue(String("j1 " + sliderValue).c_str(), sliderValue);
         break;
 
     case 1:
@@ -95,7 +97,7 @@ void setScreen(){
         sendCommand(String("t9 " + Vueltas).c_str());
         sendCommand(String("t8 " + lapTime).c_str());
         sendCommand(String("t12 " + PorcentajeBateria).c_str());
-        setSliderValue(String("j1 " + sliderValue).c_str(),sliderValue);
+        setSliderValue(String("j1 " + sliderValue).c_str(), sliderValue);
 
         break;
 
@@ -215,37 +217,42 @@ void SendTime(unsigned long time)
     unsigned long minutes = (time / 60000) % 60;
     unsigned long seconds = (time / 1000) % 60;
     unsigned long milliseconds = time % 1000;
-    String timeString = String(minutes) + ":" + String(seconds) + ":" + String(milliseconds,1);
+    String timeString = String(minutes) + ":" + String(seconds) + ":" + String(milliseconds, 1);
 }
 
 void ReadMax485()
 {
     const char delimiter[] = "&";
-    if (softSerial.available())
+    if (Serial1.available())
     {
-        String message = softSerial.readStringUntil('#'); 
+
+        String message = Serial1.readStringUntil('#');
+
         Serial.println(message);
-        char msg[message.length() + 1]; 
+        char msg[message.length() + 1];
         message.toCharArray(msg, sizeof(msg));
 
-        Tension = strtok(msg, delimiter); 
+        Tension = strtok(msg, delimiter);
         Consumo = strtok(NULL, delimiter);
-        Rapidez = strtok(NULL, delimiter); 
+        Rapidez = strtok(NULL, delimiter);
 
-        //VVVVV A borrar Una vez que funciona VVVV
-        if (Tension != NULL) {
+        // VVVVV A borrar Una vez que funciona VVVV
+        if (Tension != NULL)
+        {
             Serial.print("Tension: ");
             Serial.println(Tension);
         }
-        if (Consumo != NULL) {
+        if (Consumo != NULL)
+        {
             Serial.print("Consumo: ");
             Serial.println(Consumo);
         }
-        if (Rapidez != NULL) {
+        if (Rapidez != NULL)
+        {
             Serial.print("Speed: ");
             Serial.println(Rapidez);
         }
         // ^^^^^^^^^^^^^^^^^
+
     }
 }
-
